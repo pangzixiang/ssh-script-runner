@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <logger name="org.eclipse.jgit" level="OFF" />
+    <logger name="org.apache.sshd" level="OFF" />
+    <property name="LOG_HOME" value="${ssh-script-runner.log.home:-./log}" />
+    <property name="ENV" value="${ssh-script-runner.env:-dev}" />
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>
+                %cyan(%d{ISO8601}) %highlight(%-5level) %cyan([%t]) %boldMagenta(%C): %cyan(%msg%n%throwable)
+            </Pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/%d.%i.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFileNamingAndTriggeringPolicy">
+                <maxFileSize>1MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <Pattern>
+                %d{ISO8601} %-5level [%t] %C: %msg%n%throwable
+            </Pattern>
+        </encoder>
+    </appender>
+
+    <if condition='property("ENV").equals("dev")'>
+        <then>
+            <root level="DEBUG">
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </then>
+        <else>
+            <root level="INFO">
+                <appender-ref ref="FILE" />
+                <appender-ref ref="CONSOLE"/>
+            </root>
+        </else>
+    </if>
+</configuration>

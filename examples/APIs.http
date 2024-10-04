@@ -1,0 +1,62 @@
+### POST request to issue token
+POST {{baseUrl}}/ssh-script-runner/api/issue-token
+Content-Type: application/json
+
+{
+  "user": "{{user}}",
+  "password": "{{password}}"
+}
+
+> {% client.global.set("auth_token", response.body.data); %}
+
+### GET request to load ssh private key
+GET {{baseUrl}}/ssh-script-runner/api/ssh-key
+Cookie: sshsr_token={{auth_token}}
+
+### DELETE request to delete ssh private key
+DELETE {{baseUrl}}/ssh-script-runner/api/ssh-key/test.pri
+Cookie: sshsr_token={{auth_token}}
+
+### POST request to add ssh private key to server
+POST {{baseUrl}}/ssh-script-runner/api/ssh-key
+Content-Type: multipart/form-data; boundary=boundary
+Cookie: sshsr_token={{auth_token}}
+
+--boundary
+Content-Disposition: form-data; name="test1"; filename="test1.pri"
+
+< ./test1.pri
+
+--boundary
+Content-Disposition: form-data; name="test2"; filename="test2.pri"
+
+< ./test2.pri
+
+--boundary
+Content-Disposition: form-data; name="test2"; filename="test2.pri"
+
+< ./test3.pri
+
+### GET request to subscript SSE
+GET {{baseUrl}}/ssh-script-runner/api/sse-subscription
+Cookie: sshsr_token={{auth_token}}
+
+### POST request to trigger script run
+POST {{baseUrl}}/ssh-script-runner/api/run
+Content-Type: application/json
+Cookie: sshsr_token={{auth_token}}
+
+{
+  "gitSshUrl": "ssh://git@github.com:22/pangzixiang/ssh-script-runner-test-repo",
+  "branch": "main",
+  "targetServer": {
+    "host": "172.18.0.205",
+    "username": "baby-marker"
+  },
+  "jumpServer": {
+    "host": "prd.whatsit.top",
+    "username": "sshsr"
+  }
+}
+
+###
