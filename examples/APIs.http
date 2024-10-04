@@ -1,0 +1,36 @@
+### POST request to add ssh private key to server
+POST {{baseUrl}}/ssh-script-runner/ssh-key
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="test1"; filename="test1.pri"
+
+< ./test1.pri
+
+--boundary
+Content-Disposition: form-data; name="test2"; filename="test2.pri"
+
+< ./test2.pri
+
+--boundary
+Content-Disposition: form-data; name="test2"; filename="test2.pri"
+
+< ./test3.pri
+
+### GET request to subscript SSE
+GET {{baseUrl}}/ssh-script-runner/sse-subscription
+
+### POST request to trigger script run
+POST {{baseUrl}}/ssh-script-runner/run
+Content-Type: application/json
+
+{
+  "gitSshUrl": "ssh://git@github.com:22/pangzixiang/ssh-script-runner-test-repo",
+  "branch": "main",
+  "targetServer": {
+    "host": "prd.whatsit.top",
+    "username": "sshsr"
+  }
+}
+
+###
