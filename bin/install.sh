@@ -54,6 +54,12 @@ status "Building and Installing"
 rm -rf /tmp/${REPOSITORY_NAME}
 git clone --depth=1 ${REPOSITORY_URL} /tmp/${REPOSITORY_NAME}
 cd /tmp/${REPOSITORY_NAME}
+### unset proxy to avoid maven download issue
+unset HTTPS_PROXY
+unset HTTP_PROXY
+unset https_proxy
+unset http_proxy
+#############################################
 ./mvnw clean package -s .mvn/settings.xml
 
 for BINDIR in /usr/local/bin /usr/bin /bin; do

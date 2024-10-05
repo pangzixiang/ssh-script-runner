@@ -8,10 +8,10 @@
     <localRepository>/tmp/.m2/repository</localRepository>
     <mirrors>
         <mirror>
-            <id>nexus-aliyun</id>
+            <id>nexus-tencentyun</id>
             <mirrorOf>*</mirrorOf>
-            <name>Nexus aliyun</name>
-            <url>https://maven.aliyun.com/repository/public</url>
+            <name>Nexus tencentyun</name>
+            <url>https://mirrors.cloud.tencent.com/nexus/repository/maven-public/</url>
         </mirror>
     </mirrors>
     <profiles/>
