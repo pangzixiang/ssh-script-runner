@@ -36,3 +36,4 @@ build/
 log
 .sshsr
 *.pri
+http-client.private.env.json

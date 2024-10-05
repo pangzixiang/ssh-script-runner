@@ -1,6 +1,8 @@
 package io.github.pangzixiang.ssh.script.runner;
 
 import io.github.pangzixiang.ssh.script.runner.config.AppConfiguration;
+import io.github.pangzixiang.ssh.script.runner.handler.AuthenticationHandler;
+import io.github.pangzixiang.ssh.script.runner.handler.AuthorizationHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.FailureRouterHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.PostSshKeyHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.SSESubscriptionHandler;
@@ -39,9 +41,10 @@ public class SshScriptRunner extends AbstractVerticle {
                 .setUploadsDirectory(FileUtils.getTempDirectoryPath() + "/sshsrtmp"));
 
         Router router = Router.router(getVertx());
-        router.post("/ssh-key").handler(PostSshKeyHandler.create());
-        router.get("/sse-subscription").handler(SSESubscriptionHandler.create());
-        router.post("/run").handler(TriggerScriptRunHandler.create());
+        router.post("/ssh-key").handler(AuthenticationHandler.create(getVertx())).handler(PostSshKeyHandler.create());
+        router.get("/sse-subscription").handler(AuthenticationHandler.create(getVertx())).handler(SSESubscriptionHandler.create());
+        router.post("/run").handler(AuthenticationHandler.create(getVertx())).handler(TriggerScriptRunHandler.create());
+        router.post("/issue-token").handler(AuthorizationHandler.create(getVertx()));
 
         mainRouter.route("/ssh-script-runner/*").subRouter(router);
         mainRouter.route().failureHandler(FailureRouterHandler.create());
