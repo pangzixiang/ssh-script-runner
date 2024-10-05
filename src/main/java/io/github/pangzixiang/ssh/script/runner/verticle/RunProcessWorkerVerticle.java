@@ -3,7 +3,6 @@ package io.github.pangzixiang.ssh.script.runner.verticle;
 import io.github.pangzixiang.ssh.script.runner.common.GitEmptyCredentialsProvider;
 import io.github.pangzixiang.ssh.script.runner.common.SSEOutputStream;
 import io.github.pangzixiang.ssh.script.runner.common.SSEOutputWriter;
-import io.github.pangzixiang.ssh.script.runner.config.AppConfiguration;
 import io.github.pangzixiang.ssh.script.runner.exception.AppInitializeException;
 import io.github.pangzixiang.ssh.script.runner.exception.RemoteFSException;
 import io.github.pangzixiang.ssh.script.runner.handler.SSESubscriptionHandler;
@@ -29,21 +28,20 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 @Slf4j
 public class RunProcessWorkerVerticle extends AbstractVerticle {
     public static final String RUN_PROCESS_ADDRESS = UUID.randomUUID().toString();
     private final SshKeyService sshKeyService;
     private static final CredentialsProvider CREDENTIALS_PROVIDER = new GitEmptyCredentialsProvider();
-    private final AppConfiguration appConfiguration = AppConfiguration.getInstance();
     private final File tempWorkingDir;
     private final SSEOutputWriter sseOutputWriter;
     private final SSEOutputStream sseOutputStream;
@@ -51,7 +49,7 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
         this.sshKeyService = SshKeyService.getInstance();
         this.sseOutputWriter = new SSEOutputWriter(this::publishLog);
         this.sseOutputStream = new SSEOutputStream(this::publishLog);
-        this.tempWorkingDir = new File(appConfiguration.getString("app.temp-dir", FileUtils.getTempDirectoryPath() + "/sshsr"));
+        this.tempWorkingDir = new File(FileUtils.getTempDirectoryPath() + "/sshsrtmp");
         if (!this.tempWorkingDir.exists()) {
             try {
                 FileUtils.forceMkdir(tempWorkingDir);
@@ -102,8 +100,8 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 publishLog("succeeded to connect to target %s".formatted(targetServer));
 
                 SftpFileSystem sftpFileSystem = SftpClientFactory.instance().createSftpFileSystem(clientSession);
-                Path targetDir = sftpFileSystem.getDefaultDir().resolve(".sshsrtmp").resolve(id);
-                deleteDirFS(targetDir);
+                Path targetDir = sftpFileSystem.getPath("/tmp").resolve("sshsrtmp").resolve(id);
+//                deleteDirFS(targetDir);
                 Files.createDirectories(targetDir);
                 copyDirFS(new File(dir, ".sshsr"), targetDir);
                 ChannelExec channelExec = clientSession.createExecChannel("cd %s && bash main.sh".formatted(targetDir.toString()));
@@ -112,6 +110,7 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 channelExec.open().verify(5, TimeUnit.SECONDS);
                 channelExec.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(30));
                 clientSession.close();
+//                deleteDirFS(targetDir);
                 log.info("Succeeded to handle script runner request {} (processId={})", runRequest, id);
                 publishLog("process ended for %s with status %s".formatted(runRequest, channelExec.getExitStatus()));
             } catch (Exception e) {
@@ -134,26 +133,26 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
         return null;
     }
 
-    private void deleteDirFS(Path dir) {
-        if (Files.notExists(dir)) {
-            return;
-        }
-        try (Stream<Path> subs = Files.list(dir)) {
-            subs.forEach(sub -> {
-                if (Files.isDirectory(sub)) {
-                    deleteDirFS(sub);
-                } else {
-                    try {
-                        Files.deleteIfExists(sub);
-                    } catch (IOException e) {
-                        throw new RemoteFSException("Failed to delete file " + sub, e);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            throw new RemoteFSException("Failed to list directory " + dir, e);
-        }
-    }
+//    private void deleteDirFS(Path dir) {
+//        if (Files.notExists(dir)) {
+//            return;
+//        }
+//        try (Stream<Path> subs = Files.list(dir)) {
+//            subs.forEach(sub -> {
+//                if (Files.isDirectory(sub)) {
+//                    deleteDirFS(sub);
+//                } else {
+//                    try {
+//                        Files.deleteIfExists(sub);
+//                    } catch (IOException e) {
+//                        throw new RemoteFSException("Failed to delete file " + sub, e);
+//                    }
+//                }
+//            });
+//        } catch (Exception e) {
+//            throw new RemoteFSException("Failed to list directory " + dir, e);
+//        }
+//    }
 
     private void copyDirFS(File source, Path target) {
         File[] files = source.listFiles();

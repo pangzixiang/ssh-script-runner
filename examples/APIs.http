@@ -28,6 +28,10 @@ Content-Type: application/json
   "gitSshUrl": "ssh://git@github.com:22/pangzixiang/ssh-script-runner-test-repo",
   "branch": "main",
   "targetServer": {
+    "host": "172.18.0.205",
+    "username": "baby-marker"
+  },
+  "jumpServer": {
     "host": "prd.whatsit.top",
     "username": "sshsr"
   }

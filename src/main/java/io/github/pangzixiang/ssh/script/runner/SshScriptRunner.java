@@ -8,11 +8,18 @@ import io.github.pangzixiang.ssh.script.runner.handler.TriggerScriptRunHandler;
 import io.github.pangzixiang.ssh.script.runner.pojo.TriggerRunRequest;
 import io.github.pangzixiang.ssh.script.runner.pojo.TriggerRunRequestCodec;
 import io.github.pangzixiang.ssh.script.runner.verticle.RunProcessWorkerVerticle;
-import io.vertx.core.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.ThreadingModel;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -29,7 +36,7 @@ public class SshScriptRunner extends AbstractVerticle {
         Router mainRouter = Router.router(getVertx());
         mainRouter.route().handler(BodyHandler.create()
                 .setDeleteUploadedFilesOnEnd(true)
-                .setUploadsDirectory(appConfiguration.getString("app.dir") + "/tmp"));
+                .setUploadsDirectory(FileUtils.getTempDirectoryPath() + "/sshsrtmp"));
 
         Router router = Router.router(getVertx());
         router.post("/ssh-key").handler(PostSshKeyHandler.create());
