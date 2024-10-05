@@ -8,5 +8,5 @@
 - HOCON conf
 ## Install
 ```shell
-sudo sh install.sh
+bash <(curl https://raw.githubusercontent.com/pangzixiang/ssh-script-runner/refs/heads/main/bin/install.sh)
 ```
