@@ -81,10 +81,10 @@ Description=${REPOSITORY_NAME}
 After=network-online.target
 
 [Service]
-ExecStart=java -jar $BINDIR/${REPOSITORY_NAME}
+ExecStart=$HOME/.jdk/jdk21/bin/java -jar $BINDIR/${REPOSITORY_NAME}
 Restart=always
 RestartSec=3
-Environment="PATH=$HOME/.jdk/jdk21/bin:$PATH"
+Environment="PATH=$PATH"
 
 [Install]
 WantedBy=default.target
