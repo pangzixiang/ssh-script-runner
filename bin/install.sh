@@ -51,6 +51,7 @@ export PATH=/tmp/jdk21/bin:$PATH
 java --version
 
 status "Building and Installing"
+rm -rf /tmp/${REPOSITORY_NAME}
 git clone --depth=1 ${REPOSITORY_URL} /tmp/${REPOSITORY_NAME}
 cd /tmp/${REPOSITORY_NAME}
 ./mvnw clean package -s .mvn/settings.xml
