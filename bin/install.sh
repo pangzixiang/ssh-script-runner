@@ -37,7 +37,7 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO="sudo"
 fi
 
-JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.4_7.tar.gz"
+JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.4_7.tar.gz"
 status "Install JDK from ${JDK_MIRROR_URL}"
 curl --fail --show-error --location --progress-bar -o "/tmp/jdk21.tar.gz" ${JDK_MIRROR_URL}
 mkdir -p /tmp/jdk21
