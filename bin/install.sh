@@ -37,17 +37,17 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO="sudo"
 fi
 
-if [ ! -f /tmp/jdk21.tar.gz ]; then
+if [ ! -f "${HOME}"/.jdk/jdk21.tar.gz ]; then
     JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.4_7.tar.gz"
     status "Installing JDK from ${JDK_MIRROR_URL}"
-    curl --fail --show-error --location --progress-bar -o "/tmp/jdk21.tar.gz" ${JDK_MIRROR_URL}
+    curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
 else
     status "JDK exists hence no need to download"
 fi
 
-mkdir -p /tmp/jdk21
-tar -zxf /tmp/jdk21.tar.gz --strip-components 1 -C /tmp/jdk21
-export PATH=/tmp/jdk21/bin:$PATH
+mkdir -p "${HOME}"/.jdk/jdk21
+tar -zxf "${HOME}"/.jdk/jdk21.tar.gz --strip-components 1 -C "${HOME}"/.jdk/jdk21
+export PATH="${HOME}"/.jdk/jdk21/bin:$PATH
 java --version
 
 status "Building and Installing"
@@ -83,7 +83,7 @@ After=network-online.target
 ExecStart=java -jar $BINDIR/${REPOSITORY_NAME}
 Restart=always
 RestartSec=3
-Environment="PATH=$PATH"
+Environment="PATH=$HOME/.jdk/jdk21/bin:$PATH"
 
 [Install]
 WantedBy=default.target
