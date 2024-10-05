@@ -14,7 +14,7 @@ available() { command -v "$1" >/dev/null; }
 
 ARCH=$(uname -m)
 case "$ARCH" in
-    x86_64) ARCH="x86" ;;
+    x86_64) ARCH="x64" ;;
     aarch64|arm64) ARCH="aarch64" ;;
     *) error "Unsupported architecture: $ARCH" ;;
 esac
@@ -39,7 +39,7 @@ fi
 
 JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_x64_linux_hotspot_21.0.4_7.tar.gz"
 status "Install JDK from ${JDK_MIRROR_URL}"
-curl --fail --show-error --location --progress-bar -o "/tmp/jdk21.tar.gz" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0.1 Safari/605.1.15" ${JDK_MIRROR_URL}
+curl --fail --show-error --location --progress-bar -o "/tmp/jdk21.tar.gz" ${JDK_MIRROR_URL}
 mkdir -p /tmp/jdk21
 tar -zxf /tmp/jdk21.tar.gz --strip-components 1 -C /tmp/jdk21
 export PATH=/tmp/jdk21/bin:$PATH
