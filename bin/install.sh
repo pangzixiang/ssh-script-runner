@@ -40,6 +40,7 @@ fi
 if [ ! -f "${HOME}"/.jdk/jdk21.tar.gz ]; then
     JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.4_7.tar.gz"
     status "Installing JDK from ${JDK_MIRROR_URL}"
+    mkdir -p "${HOME}"/.jdk
     curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
 else
     status "JDK exists hence no need to download"
