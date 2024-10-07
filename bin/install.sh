@@ -37,13 +37,20 @@ if [ "$(id -u)" -ne 0 ]; then
     SUDO="sudo"
 fi
 
-if [ ! -f "${HOME}"/.jdk/jdk21.tar.gz ]; then
-    JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.4_7.tar.gz"
-    status "Installing JDK from ${JDK_MIRROR_URL}"
-    mkdir -p "${HOME}"/.jdk
-    curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
+### unset proxy to avoid maven download issue
+unset HTTPS_PROXY
+unset HTTP_PROXY
+unset https_proxy
+unset http_proxy
+#############################################
+
+if [ ! -f "${HOME}"/.jdk/jdk21/bin/java ]; then
+  JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.4_7.tar.gz"
+  status "Installing JDK from ${JDK_MIRROR_URL}"
+  mkdir -p "${HOME}"/.jdk
+  curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
 else
-    status "JDK exists hence no need to download"
+  status "JDK exists hence no need to download"
 fi
 
 mkdir -p "${HOME}"/.jdk/jdk21
@@ -51,16 +58,29 @@ tar -zxf "${HOME}"/.jdk/jdk21.tar.gz --strip-components 1 -C "${HOME}"/.jdk/jdk2
 export PATH="${HOME}"/.jdk/jdk21/bin:$PATH
 java --version
 
+if [ ! -f "${HOME}"/.node/node20/bin/npm ]; then
+  NODE_MIRROR_URL="https://npmmirror.com/mirrors/node/v20.17.0/node-v20.17.0-linux-${ARCH}.tar.gz"
+  status "Installing Node from ${NODE_MIRROR_URL}"
+  mkdir -p "${HOME}"/.node
+  curl --fail --show-error --location --progress-bar -o "${HOME}"/.node/node20.tar.gz ${NODE_MIRROR_URL}
+else
+  status "Node exists hence no need to download"
+fi
+
+mkdir -p "${HOME}"/.node/node20
+tar -zxf "${HOME}"/.node/node20.tar.gz --strip-components 1 -C "${HOME}"/.node/node20
+export PATH="${HOME}"/.node/node20/bin:$PATH
+node --version
+npm --version
+npm config set registry https://registry.npmmirror.com
+
 status "Building and Installing"
 rm -rf /tmp/${REPOSITORY_NAME}
 git clone --depth=1 ${REPOSITORY_URL} /tmp/${REPOSITORY_NAME}
+cd /tmp/${REPOSITORY_NAME}/ui
+npm install
+npm run build
 cd /tmp/${REPOSITORY_NAME}
-### unset proxy to avoid maven download issue
-unset HTTPS_PROXY
-unset HTTP_PROXY
-unset https_proxy
-unset http_proxy
-#############################################
 ./mvnw clean package -s .mvn/settings.xml
 
 for BINDIR in /usr/local/bin /usr/bin /bin; do
