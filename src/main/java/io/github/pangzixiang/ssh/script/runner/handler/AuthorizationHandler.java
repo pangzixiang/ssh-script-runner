@@ -8,6 +8,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +62,8 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
             Cookie cookie = Cookie.cookie("sshsr_token", token)
                     .setHttpOnly(false)
                     .setMaxAge(appConfiguration.getInt("jwt.expire-time") * 60)
-                    .setSecure(true)
+                    .setSameSite(CookieSameSite.STRICT)
+                    .setDomain(routingContext.request().authority().host())
                     .setPath("/");
             RestResponse.builder()
                     .message("succeeded to generate token")

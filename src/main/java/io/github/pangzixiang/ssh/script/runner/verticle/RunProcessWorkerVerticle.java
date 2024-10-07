@@ -84,6 +84,7 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
 
                 File dir = new File(this.tempWorkingDir, id);
 
+                publishLog("clone repository into %s".formatted(dir));
                 Git.cloneRepository()
                         .setProgressMonitor(new TextProgressMonitor(this.sseOutputWriter))
                         .setBranch(runRequest.getBranch())
