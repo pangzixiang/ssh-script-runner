@@ -63,7 +63,7 @@ public class AuthorizationHandler implements Handler<RoutingContext> {
                     .setHttpOnly(false)
                     .setMaxAge(appConfiguration.getInt("jwt.expire-time") * 60)
                     .setSameSite(CookieSameSite.STRICT)
-                    .setDomain(routingContext.request().authority().host())
+                    .setDomain(routingContext.request().host())
                     .setPath("/");
             RestResponse.builder()
                     .message("succeeded to generate token")
