@@ -1,5 +1,5 @@
 import { NotificationState } from '../Notification/hook.ts'
-import { Dispatch, useEffect, useState } from 'react'
+import { Dispatch, useEffect, useRef, useState } from 'react'
 import {
     Button,
     FormControlLabel,
@@ -25,6 +25,17 @@ export default function RunProcess(props: Props) {
     const [jumpHost, setJumpHost] = useState<string>('')
     const [jumpUser, setJumpUser] = useState<string>('')
     const [consoleLog, setConsoleLog] = useState<string>('')
+    const consoleRef = useRef(null)
+    useEffect(() => {
+        if (consoleRef.current) {
+            const textarea = (consoleRef.current as HTMLElement).querySelector(
+                'textarea'
+            )
+            if (textarea) {
+                textarea.scrollTop = textarea.scrollHeight
+            }
+        }
+    }, [consoleLog])
     const reset = () => {
         setGitSshUrl('')
         setBranch('')
@@ -183,6 +194,7 @@ export default function RunProcess(props: Props) {
             </Grid2>
             <TextField
                 multiline
+                ref={consoleRef}
                 value={consoleLog}
                 label={'Console'}
                 variant="outlined"
