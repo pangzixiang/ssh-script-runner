@@ -63,11 +63,11 @@
             <artifactId>sshd-netty</artifactId>
             <version>${sshd.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.sshd</groupId>
-            <artifactId>sshd-git</artifactId>
-            <version>${sshd.version}</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.sshd</groupId>-->
+        <!--            <artifactId>sshd-git</artifactId>-->
+        <!--            <version>${sshd.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>org.apache.sshd</groupId>
             <artifactId>sshd-sftp</artifactId>
