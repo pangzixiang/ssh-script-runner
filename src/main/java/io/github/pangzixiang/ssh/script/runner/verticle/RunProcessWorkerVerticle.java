@@ -36,23 +36,9 @@ import java.util.concurrent.TimeUnit;
 public class RunProcessWorkerVerticle extends AbstractVerticle {
     public static final String RUN_PROCESS_ADDRESS = UUID.randomUUID().toString();
     private final SshKeyService sshKeyService;
-
-    //    private static final CredentialsProvider CREDENTIALS_PROVIDER = new GitEmptyCredentialsProvider();
-//    private final File tempWorkingDir;
-//    private final SSEOutputWriter sseOutputWriter;
-//    private final InputStream mainScriptInputStream;
+    private static final String ENV_TEMPLATE = "GIT_SSH_URL=%s GIT_BRANCH=%s PROCESS_ID=%s GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -i %s'";
     public RunProcessWorkerVerticle() {
         this.sshKeyService = SshKeyService.getInstance();
-//        this.sseOutputWriter = new SSEOutputWriter(this::publishLog);
-        //        this.tempWorkingDir = new File(FileUtils.getTempDirectoryPath() + "/sshsrtmp");
-//        if (!this.tempWorkingDir.exists()) {
-//            try {
-//                FileUtils.forceMkdir(tempWorkingDir);
-//                FileUtils.forceDeleteOnExit(tempWorkingDir);
-//            } catch (Exception e){
-//                throw new AppInitializeException("Fail to create temp directory: " + tempWorkingDir, e);
-//            }
-//        }
     }
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
@@ -79,21 +65,6 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 }
                 sshClient.setHostConfigEntryResolver(HostConfigEntry.toHostConfigEntryResolver(hostConfigEntries));
                 sshClient.start();
-//                GitSshdSessionFactory sshdFactory = new GitSshdSessionFactory(sshClient);
-//                SshSessionFactory.setInstance(sshdFactory);
-//
-//                File dir = new File(this.tempWorkingDir, id);
-//
-//                publishLog("clone repository into %s".formatted(dir));
-//                Git.cloneRepository()
-//                        .setProgressMonitor(new TextProgressMonitor(this.sseOutputWriter))
-//                        .setBranch(runRequest.getBranch())
-//                        .setCloneAllBranches(false)
-//                        .setCredentialsProvider(CREDENTIALS_PROVIDER)
-//                        .setDirectory(dir)
-//                        .setNoTags()
-//                        .setURI(runRequest.getGitSshUrl())
-//                        .call().close();
 
                 ClientSession clientSession = sshClient.connect("target")
                                 .verify(5, TimeUnit.SECONDS).getClientSession();
@@ -103,15 +74,11 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 SftpFileSystem sftpFileSystem = SftpClientFactory.instance().createSftpFileSystem(clientSession);
                 Path targetDir = sftpFileSystem.getDefaultDir().resolve(".ssh");
                 Path targetKeyFilePath = targetDir.resolve("sshsr_git.pri");
-//                deleteDirFS(targetDir);
                 Files.createDirectories(targetDir);
                 Files.copy(new FileInputStream(gitSshKey), targetKeyFilePath, StandardCopyOption.REPLACE_EXISTING);
                 Files.setPosixFilePermissions(targetKeyFilePath, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
-//                copyDirFS(new File(dir, ".sshsr"), targetDir);
-//                ChannelExec channelExec = clientSession.createExecChannel("cd %s && bash main.sh".formatted(targetDir.toString()));
-                String env = "GIT_SSH_URL=%s GIT_BRANCH=%s PROCESS_ID=%s GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -i %s'".formatted(runRequest.getGitSshUrl(), runRequest.getBranch(), id, targetKeyFilePath);
-                ChannelExec channelExec = clientSession.createExecChannel("%s bash".formatted(env),
-                        Charset.defaultCharset(), null, null);
+                String env = ENV_TEMPLATE.formatted(runRequest.getGitSshUrl(), runRequest.getBranch(), id, targetKeyFilePath);
+                ChannelExec channelExec = clientSession.createExecChannel("%s bash".formatted(env), Charset.defaultCharset(), null, null);
                 channelExec.setIn(RunProcessWorkerVerticle.class.getClassLoader().getResourceAsStream("bin/main.sh"));
                 channelExec.setOut(new SSEOutputStream(this::publishLog));
                 channelExec.setRedirectErrorStream(true);
@@ -119,7 +86,6 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 channelExec.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(30));
                 channelExec.close();
                 clientSession.close();
-//                deleteDirFS(targetDir);
                 log.info("Succeeded to handle script runner request {} (processId={})", runRequest, id);
                 publishLog("process ended for %s with status %s".formatted(runRequest, channelExec.getExitStatus()));
             } catch (Exception e) {
@@ -146,47 +112,4 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
         getVertx().eventBus().publish(SSESubscriptionHandler.LOG_SUBSCRIPTION_ADDRESS, message);
         return null;
     }
-
-//    private void deleteDirFS(Path dir) {
-//        if (Files.notExists(dir)) {
-//            return;
-//        }
-//        try (Stream<Path> subs = Files.list(dir)) {
-//            subs.forEach(sub -> {
-//                if (Files.isDirectory(sub)) {
-//                    deleteDirFS(sub);
-//                } else {
-//                    try {
-//                        Files.deleteIfExists(sub);
-//                    } catch (IOException e) {
-//                        throw new RemoteFSException("Failed to delete file " + sub, e);
-//                    }
-//                }
-//            });
-//        } catch (Exception e) {
-//            throw new RemoteFSException("Failed to list directory " + dir, e);
-//        }
-//    }
-
-//    private void copyDirFS(File source, Path target) {
-//        File[] files = source.listFiles();
-//        if (files != null) {
-//            for (File file : files) {
-//                if (file.isDirectory()) {
-//                    try {
-//                        Files.createDirectory(target.resolve(file.getName()));
-//                    } catch (Exception e) {
-//                        throw new RemoteFSException("Failed to create directory " + target.resolve(file.getName()), e);
-//                    }
-//                    copyDirFS(file, target.resolve(file.getName()));
-//                } else {
-//                    try {
-//                        Files.copy(new FileInputStream(file), target.resolve(file.getName()), StandardCopyOption.REPLACE_EXISTING);
-//                    } catch (Exception e) {
-//                        throw new RemoteFSException("Failed to copy file " + file, e);
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
