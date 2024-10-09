@@ -28,6 +28,8 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -116,7 +118,12 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 publishLog("process ended for %s with status %s".formatted(runRequest, channelExec.getExitStatus()));
             } catch (Exception e) {
                 log.error("Failed to handle script runner request {} (processId={})", runRequest, id, e);
-                publishLog("process failed for %s with err: %s".formatted(runRequest, e.getMessage()));
+                StringWriter sw = new StringWriter();
+                e.printStackTrace(new PrintWriter(sw));
+                publishLog("process failed for %s with err: ".formatted(runRequest));
+                for (String s : sw.toString().split("\n")) {
+                    publishLog(s);
+                }
             }
         }).completionHandler(ar -> {
             if (ar.succeeded()) {
