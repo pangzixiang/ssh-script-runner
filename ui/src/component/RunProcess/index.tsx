@@ -20,6 +20,7 @@ export default function RunProcess(props: Props) {
     const [enableJumpServer, setEnableJumpServer] = useState(false)
     const [gitSshUrl, setGitSshUrl] = useState<string>('')
     const [branch, setBranch] = useState<string>('master')
+    const [mainScript, setMainScript] = useState<string>('main.sh')
     const [targetHost, setTargetHost] = useState<string>('')
     const [targetUser, setTargetUser] = useState<string>('')
     const [jumpHost, setJumpHost] = useState<string>('')
@@ -38,7 +39,8 @@ export default function RunProcess(props: Props) {
     }, [consoleLog])
     const reset = () => {
         setGitSshUrl('')
-        setBranch('')
+        setBranch('master')
+        setMainScript('main.sh')
         setTargetHost('')
         setTargetUser('')
         setJumpHost('')
@@ -51,6 +53,8 @@ export default function RunProcess(props: Props) {
             gitSshUrl !== '' &&
             branch &&
             branch !== '' &&
+            mainScript &&
+            mainScript !== '' &&
             targetHost &&
             targetHost !== '' &&
             targetUser &&
@@ -60,6 +64,7 @@ export default function RunProcess(props: Props) {
             let requestBody: SubmitRunProcessRequest = {
                 gitSshUrl: gitSshUrl,
                 branch: branch,
+                mainScript: mainScript,
                 targetServer: {
                     host: targetHost,
                     username: targetUser,
@@ -132,6 +137,13 @@ export default function RunProcess(props: Props) {
                     value={branch}
                     placeholder={'master'}
                     onChange={(event) => setBranch(event.target.value)}
+                    variant="standard"
+                />
+                <TextField
+                    label={'Main script'}
+                    value={mainScript}
+                    placeholder={'main.sh'}
+                    onChange={(event) => setMainScript(event.target.value)}
                     variant="standard"
                 />
                 <TextField

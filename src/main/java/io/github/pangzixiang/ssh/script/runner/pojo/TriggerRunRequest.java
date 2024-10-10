@@ -18,6 +18,8 @@ public class TriggerRunRequest {
     @Builder.Default
     private String branch = "master";
     @NonNull
+    private String mainScript;
+    @NonNull
     private Server targetServer;
     private Server jumpServer;
 

@@ -3,6 +3,7 @@ const url = '/ssh-script-runner/api/run'
 export type SubmitRunProcessRequest = {
     gitSshUrl: string
     branch: string
+    mainScript: string
     targetServer: { host: string; username: string }
     jumpServer?: { host: string; username: string }
 }

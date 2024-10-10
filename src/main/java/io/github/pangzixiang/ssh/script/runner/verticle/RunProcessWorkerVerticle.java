@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class RunProcessWorkerVerticle extends AbstractVerticle {
     public static final String RUN_PROCESS_ADDRESS = UUID.randomUUID().toString();
     private final SshKeyService sshKeyService;
-    private static final String ENV_TEMPLATE = "GIT_SSH_URL=%s GIT_BRANCH=%s PROCESS_ID=%s GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -i %s'";
+    private static final String ENV_TEMPLATE = "GIT_SSH_URL=%s GIT_BRANCH=%s MAIN_SCRIPT=%s PROCESS_ID=%s GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -i %s'";
     public RunProcessWorkerVerticle() {
         this.sshKeyService = SshKeyService.getInstance();
     }
@@ -77,7 +77,7 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                 Files.createDirectories(targetDir);
                 Files.copy(new FileInputStream(gitSshKey), targetKeyFilePath, StandardCopyOption.REPLACE_EXISTING);
                 Files.setPosixFilePermissions(targetKeyFilePath, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
-                String env = ENV_TEMPLATE.formatted(runRequest.getGitSshUrl(), runRequest.getBranch(), id, targetKeyFilePath);
+                String env = ENV_TEMPLATE.formatted(runRequest.getGitSshUrl(), runRequest.getBranch(), runRequest.getMainScript(), id, targetKeyFilePath);
                 ChannelExec channelExec = clientSession.createExecChannel("%s bash".formatted(env), Charset.defaultCharset(), null, null);
                 channelExec.setIn(RunProcessWorkerVerticle.class.getClassLoader().getResourceAsStream("bin/main.sh"));
                 channelExec.setOut(new SSEOutputStream(this::publishLog));
