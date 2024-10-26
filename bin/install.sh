@@ -58,7 +58,7 @@ unset http_proxy
 #export PATH="${HOME}"/.jdk/jdk21/bin:$PATH
 
 if ! available java; then
-    sudo apt update && sudo apt install openjdk-21-jdk
+    sudo apt-get update && sudo apt-get install -y openjdk-21-jdk
 fi
 
 java --version
