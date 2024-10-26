@@ -11,6 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import io.github.pangzixiang.ssh.script.runner.config.AppConfiguration;
 import io.github.pangzixiang.ssh.script.runner.handler.AuthenticationHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.AuthorizationHandler;
+import io.github.pangzixiang.ssh.script.runner.handler.CancelJobHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.DeleteSshKeyHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.FailureRouterHandler;
 import io.github.pangzixiang.ssh.script.runner.handler.GenerateSshKeyHandler;
@@ -88,6 +89,7 @@ public class SshScriptRunner extends AbstractVerticle {
         router.delete("/api/ssh-key/:name").handler(AuthenticationHandler.create(getVertx())).handler(DeleteSshKeyHandler.create());
         router.get("/api/sse-subscription").handler(AuthenticationHandler.create(getVertx())).handler(SSESubscriptionHandler.create());
         router.post("/api/run").handler(AuthenticationHandler.create(getVertx())).handler(TriggerScriptRunHandler.create());
+        router.post("/api/cancel").handler(AuthenticationHandler.create(getVertx())).handler(CancelJobHandler.create());
         router.get("/api/run/history").handler(AuthenticationHandler.create(getVertx())).handler(GetRunProcessHistoryHandler.create());
         router.post("/api/issue-token").handler(AuthorizationHandler.create(getVertx()));
         router.patch("/api/queue-lock").handler(AuthenticationHandler.create(getVertx())).handler(QueueLockHandler.create());

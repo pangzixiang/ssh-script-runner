@@ -1,11 +1,17 @@
 package io.github.pangzixiang.ssh.script.runner.verticle;
 
 import io.github.pangzixiang.ssh.script.runner.common.SSEOutputStream;
+import io.github.pangzixiang.ssh.script.runner.exception.ProcessCancelException;
 import io.github.pangzixiang.ssh.script.runner.handler.SSESubscriptionHandler;
 import io.github.pangzixiang.ssh.script.runner.pojo.TriggerRunRequest;
 import io.github.pangzixiang.ssh.script.runner.service.SshKeyService;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ChannelExec;
 import org.apache.sshd.client.channel.ClientChannelEvent;
@@ -17,6 +23,7 @@ import org.apache.sshd.sftp.client.fs.SftpFileSystem;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
@@ -74,9 +81,37 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
         this.sshKeyService = SshKeyService.getInstance();
     }
 
+    private static ChannelExec channelExec;
+
+    public static void cancelJob() throws ProcessCancelException {
+        if (channelExec != null) {
+            try {
+                channelExec.close();
+                channelExec = null;
+            } catch (IOException e) {
+                throw new ProcessCancelException("failed to cancel", e);
+            }
+        } else {
+            throw new ProcessCancelException("no running job");
+        }
+    }
+
+    @Override
+    public void stop(Promise<Void> stopPromise) throws Exception {
+        File cache = new File(FileUtils.getTempDirectoryPath(), "sshsr.history");
+        FileUtils.writeStringToFile(cache, Json.encode(runRequestHistory), Charset.defaultCharset());
+        stopPromise.complete();
+    }
+
     @Override
     public void start() throws Exception {
         log.info("Starting to deploy RunProcessWorkerVerticle");
+        File cache = new File(FileUtils.getTempDirectoryPath(), "sshsr.history");
+        if (cache.exists()) {
+            String history = FileUtils.readFileToString(cache, Charset.defaultCharset());
+            JsonArray historyJson = new JsonArray(history);
+            historyJson.forEach(o -> runRequestHistory.add(((JsonObject) o).mapTo(TriggerRunRequest.class)));
+        }
         getVertx().setPeriodic(0, TimeUnit.SECONDS.toMillis(5), l -> {
             if (locked.getAcquire()) {
                 return;
@@ -117,13 +152,12 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                         Files.copy(new FileInputStream(gitSshKey), targetKeyFilePath, StandardCopyOption.REPLACE_EXISTING);
                         Files.setPosixFilePermissions(targetKeyFilePath, Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
                         String env = ENV_TEMPLATE.formatted(runRequest.getGitSshUrl(), runRequest.getBranch(), runRequest.getMainScript(), id, targetKeyFilePath);
-                        ChannelExec channelExec = clientSession.createExecChannel("%s bash".formatted(env), Charset.defaultCharset(), null, null);
+                        channelExec = clientSession.createExecChannel("%s bash".formatted(env), Charset.defaultCharset(), null, null);
                         channelExec.setIn(RunProcessWorkerVerticle.class.getClassLoader().getResourceAsStream("bin/main.sh"));
                         channelExec.setOut(new SSEOutputStream(this::publishLog));
                         channelExec.setRedirectErrorStream(true);
                         channelExec.open().verify(5, TimeUnit.SECONDS);
                         channelExec.waitFor(EnumSet.of(ClientChannelEvent.CLOSED), TimeUnit.MINUTES.toMillis(30));
-                        channelExec.close();
                         clientSession.close();
                         log.info("Succeeded to handle script runner request {} (processId={})", runRequest, id);
                         publishNotification("process ended for %s with status %s".formatted(runRequest, channelExec.getExitStatus()));
@@ -136,6 +170,8 @@ public class RunProcessWorkerVerticle extends AbstractVerticle {
                         for (String s : sw.toString().split("\n")) {
                             publishLog(s);
                         }
+                    } finally {
+                        channelExec = null;
                     }
                 }
                 lock.release();

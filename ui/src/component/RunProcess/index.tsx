@@ -19,6 +19,7 @@ import SubmitRunProcess, {
 import { GetQueueLock, SetQueueLock } from '../../api/QueueLock'
 import Console from '../Console'
 import RunHistory from '../../api/RunHistory'
+import CancelJob from '../../api/CancelJob'
 
 type Props = {
     dispatchNotification: Dispatch<NotificationState>
@@ -169,7 +170,7 @@ export default function RunProcess(props: Props) {
                         setGitSshUrl(value)
                     }}
                     value={gitSshUrl}
-                    inputValue={gitSshUrl ?? undefined}
+                    inputValue={gitSshUrl ?? ''}
                     fullWidth
                     onInputChange={(_, value: string | null) => {
                         setGitSshUrl(value)
@@ -185,7 +186,7 @@ export default function RunProcess(props: Props) {
                     }}
                     value={branch}
                     sx={{ width: 180 }}
-                    inputValue={branch ?? undefined}
+                    inputValue={branch ?? ''}
                     onInputChange={(_, value: string | null) => {
                         setBranch(value)
                     }}
@@ -200,7 +201,7 @@ export default function RunProcess(props: Props) {
                     }}
                     value={mainScript}
                     sx={{ width: 180 }}
-                    inputValue={mainScript ?? undefined}
+                    inputValue={mainScript ?? ''}
                     onInputChange={(_, value: string | null) => {
                         setMainScript(value)
                     }}
@@ -215,7 +216,7 @@ export default function RunProcess(props: Props) {
                     }}
                     value={targetHost}
                     sx={{ width: 230 }}
-                    inputValue={targetHost ?? undefined}
+                    inputValue={targetHost ?? ''}
                     onInputChange={(_, value: string | null) => {
                         setTargetHost(value)
                     }}
@@ -232,7 +233,7 @@ export default function RunProcess(props: Props) {
                     }}
                     value={targetUser}
                     sx={{ width: 180 }}
-                    inputValue={targetUser ?? undefined}
+                    inputValue={targetUser ?? ''}
                     onInputChange={(_, value: string | null) => {
                         setTargetUser(value)
                     }}
@@ -268,7 +269,7 @@ export default function RunProcess(props: Props) {
                             }}
                             value={jumpHost}
                             sx={{ width: 230 }}
-                            inputValue={jumpHost ?? undefined}
+                            inputValue={jumpHost ?? ''}
                             onInputChange={(_, value: string | null) => {
                                 setJumpHost(value)
                             }}
@@ -291,7 +292,7 @@ export default function RunProcess(props: Props) {
                             }}
                             value={jumpUser}
                             sx={{ width: 180 }}
-                            inputValue={jumpUser ?? undefined}
+                            inputValue={jumpUser ?? ''}
                             onInputChange={(_, value: string | null) => {
                                 setJumpUser(value)
                             }}
@@ -343,6 +344,26 @@ export default function RunProcess(props: Props) {
                             }}
                         >
                             {lock ? 'unlock' : 'lock'}
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                CancelJob()
+                                    .then(() =>
+                                        props.dispatchNotification({
+                                            show: true,
+                                            message:
+                                                'succeeded to submit cancel request',
+                                        })
+                                    )
+                                    .catch((err) =>
+                                        props.dispatchNotification({
+                                            show: true,
+                                            message: err,
+                                        })
+                                    )
+                            }}
+                        >
+                            Cancel running job
                         </Button>
                         <List>
                             {queue &&

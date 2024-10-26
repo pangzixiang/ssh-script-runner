@@ -44,18 +44,23 @@ unset https_proxy
 unset http_proxy
 #############################################
 
-if [ ! -f "${HOME}"/.jdk/jdk21/bin/java ]; then
-  JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.5_11.tar.gz"
-  status "Installing JDK from ${JDK_MIRROR_URL}"
-  mkdir -p "${HOME}"/.jdk
-  curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
-else
-  status "JDK exists hence no need to download"
+#if [ ! -f "${HOME}"/.jdk/jdk21/bin/java ]; then
+#  JDK_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/Adoptium/21/jdk/${ARCH}/linux/OpenJDK21U-jdk_${ARCH}_linux_hotspot_21.0.5_11.tar.gz"
+#  status "Installing JDK from ${JDK_MIRROR_URL}"
+#  mkdir -p "${HOME}"/.jdk
+#  curl --fail --show-error --location --progress-bar -o "${HOME}"/.jdk/jdk21.tar.gz ${JDK_MIRROR_URL}
+#else
+#  status "JDK exists hence no need to download"
+#fi
+
+#mkdir -p "${HOME}"/.jdk/jdk21
+#tar -zxf "${HOME}"/.jdk/jdk21.tar.gz --strip-components 1 -C "${HOME}"/.jdk/jdk21
+#export PATH="${HOME}"/.jdk/jdk21/bin:$PATH
+
+if ! available java; then
+    sudo apt update && sudo apt install openjdk-21-jdk
 fi
 
-mkdir -p "${HOME}"/.jdk/jdk21
-tar -zxf "${HOME}"/.jdk/jdk21.tar.gz --strip-components 1 -C "${HOME}"/.jdk/jdk21
-export PATH="${HOME}"/.jdk/jdk21/bin:$PATH
 java --version
 
 if [ ! -f "${HOME}"/.node/node20/bin/npm ]; then
