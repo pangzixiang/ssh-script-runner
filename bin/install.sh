@@ -106,7 +106,7 @@ Description=${REPOSITORY_NAME}
 After=network-online.target
 
 [Service]
-ExecStart=$HOME/.jdk/jdk21/bin/java -Dssh-script-runner.env=prod -Dssh-script-runner.log.home=/var/log/ssh-script-runner -jar $BINDIR/${REPOSITORY_NAME}
+ExecStart=java -Dssh-script-runner.env=prod -Dssh-script-runner.log.home=/var/log/ssh-script-runner -jar $BINDIR/${REPOSITORY_NAME}
 Restart=always
 RestartSec=3
 Environment="PATH=$PATH"
