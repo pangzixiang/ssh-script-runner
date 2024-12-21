@@ -15,7 +15,7 @@ available() { command -v "$1" >/dev/null; }
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64) ARCH="x64" ;;
-    aarch64|arm64) ARCH="aarch64" ;;
+    aarch64|arm64) ARCH="arm64" ;;
     *) error "Unsupported architecture: $ARCH" ;;
 esac
 
